@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <GVL Name="gvlMQTTConst" Id="{8f994765-52c1-00bc-1716-356d921dd1fe}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	BUFFER_SIZE 		: DINT := 20000;
+	TOPIC_SIZE			: DINT := 255;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

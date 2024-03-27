@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="JSON_Drive" Id="{30f2acbf-f420-0594-1614-25c7c85318f3}">
+    <Declaration><![CDATA[TYPE JSON_Drive :
+	STRUCT
+		  id 		: DINT;
+		  name 		: STRING(255);
+		  speed 	: LREAL;
+		  torquerel : LREAL;
+		  torque	: LREAL;
+	END_STRUCT
+END_TYPE
+
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

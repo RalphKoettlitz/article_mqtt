@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MQTTClient" Id="{ae1fea02-6ec8-018f-101d-359571daa121}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'no_explicit_call' := 'do not call this POU directly'} 
+FUNCTION_BLOCK MQTTClient
+VAR
+	addr				: STRING(255);
+	port				: UINT;
+	msgDecoder			: IMQTTMsgDecoder;
+	
+	state				: MQTTClientStates;
+	
+	signal_connected	: BOOL;
+	signal_startup		: BOOL;
+	
+    mqttClient  		: TC3_IOTBase.FB_IotMqttClient;
+	mqttQueue			: TC3_IOTBase.FB_IotMqttMessageQueue;
+	mqttMsg				: TC3_IOTBase.FB_IotMqttMessage;
+	mqttBuffer			: STRING(gvlMQTTConst.BUFFER_SIZE);
+	mqttTopic			: STRING(gvlMQTTConst.TOPIC_SIZE);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="_maintainSignals" Id="{772eb71e-8003-0b06-210c-b2a01aa4ad77}">
+      <Declaration><![CDATA[METHOD PROTECTED _maintainSignals : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[signal_connected := mqttClient.bConnected;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Connected" Id="{3aafa106-a7ad-0c91-28aa-3c35bddc2f2b}">
+      <Declaration><![CDATA[PROPERTY Connected : BOOL]]></Declaration>
+      <Get Name="Get" Id="{01cc9e1e-d703-05de-24c4-7343d0329e7a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Connected := signal_connected;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="FB_init" Id="{d6612bd3-2e9c-06a0-13e7-30d6d4146eab}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+	Addr					: STRING(255);
+	Port					: UINT;
+	MessageDecoder			: IMQTTMsgDecoder;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.addr := Addr;
+THIS^.port := Port;
+THIS^.msgDecoder := MessageDecoder;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="publish" Id="{c16fd334-525e-05d3-2466-715973908e78}">
+      <Declaration><![CDATA[METHOD publish : BOOL
+VAR_INPUT
+	Topic		: REFERENCE TO STRING;
+	Data		: POINTER TO STRING;
+	DataSize	: UDINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+mqttClient.Publish(
+	Topic,
+	Data,
+	LEN2(Data),
+	TC3_IOTBase.TcIotMqttQos.AtLeastOnceDelivery,
+	FALSE,
+	FALSE
+);
+	
+	]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="reset" Id="{e278cc32-0368-0b7a-28b3-9946e82e566a}">
+      <Declaration><![CDATA[METHOD reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[state := MQTTClientStates.START;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="start" Id="{fa19c3eb-ec38-0614-23b7-7914c7cb150b}">
+      <Declaration><![CDATA[METHOD start : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[signal_startup := True;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="subscribe" Id="{3841ee98-4073-0893-17d3-c9de2b685434}">
+      <Declaration><![CDATA[METHOD subscribe : BOOL
+VAR_INPUT
+	Topic : STRING(1000);
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mqttClient.Subscribe(Topic, TC3_IoTBase.TcIotMqttQos.AtLeastOnceDelivery);
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="udpate" Id="{fe6dfb65-fd35-0e23-3656-55362e02c94f}">
+      <Declaration><![CDATA[METHOD udpate : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+_maintainSignals();
+
+CASE state OF
+	MQTTClientStates.START:
+		mqttClient.Execute(FALSE);
+		IF signal_startup THEN
+			signal_startup := FALSE;
+			mqttClient.sHostName := addr;
+			mqttClient.nHostPort := port;
+			mqttClient.sTopicPrefix := '';
+			mqttClient.ipMessageQueue := mqttQueue;
+			state := MQTTClientStates.CONNECT;
+		END_IF
+		
+	MQTTClientStates.CONNECT:
+		mqttClient.Execute(TRUE);
+		IF mqttClient.bConnected THEN
+			state := MQTTClientStates.RUN;
+		END_IF
+	
+	MQTTClientStates.RUN:
+		IF NOT mqttClient.bConnected THEN
+			mqttClient.Execute(FALSE);			
+			state := MQTTClientStates.CONNECT;
+		ELSE
+			mqttClient.Execute(TRUE);
+			IF msgDecoder <> 0 THEN
+				IF mqttQueue.nQueuedMessages > 0 AND mqttQueue.Dequeue(mqttMsg) THEN
+					mqttMsg.GetTopic(pTopic:=ADR(mqttTopic), nTopicSize:=SIZEOF(mqttTopic));
+					mqttMsg.GetPayload(pPayload := ADR(mqttBuffer), nPayloadSize:=SIZEOF(mqttBuffer), bSetNullTermination := FALSE);
+					msgDecoder.decode(Topic:=mqttTopic, Data:=mqttBuffer);
+				END_IF
+			END_IF
+		END_IF
+END_CASE
+
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

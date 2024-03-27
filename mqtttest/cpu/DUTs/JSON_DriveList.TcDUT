@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="JSON_DriveList" Id="{8bad7b7e-16dc-0d8a-03dd-b5bccc29e31c}">
+    <Declaration><![CDATA[TYPE JSON_DriveList : ARRAY[0..39] OF JSON_Drive; END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

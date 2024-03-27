@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="MQTTClientStates" Id="{8c815db9-ab87-09f2-3113-bb88bc01cf06}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE MQTTClientStates :
+(
+	START 	:= 0,
+	CONNECT := 1,
+	RUN		:= 2
+) DINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

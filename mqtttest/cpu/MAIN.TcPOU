@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{741260e1-6f70-4b9b-b1a0-4d54844d8bfe}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+	decoder : MQTTDecoder;
+	client : MQTTClient(Addr:='10.0.0.99', Port:=1883, MessageDecoder:=decoder);
+
+	msg : STRING(gvlMQTTConst.BUFFER_SIZE);
+	topic : STRING(gvlMQTTConst.TOPIC_SIZE) := '001/drives';
+	drives : JSON_DriveList;
+
+	N : DINT;
+	
+	json : FB_JsonSaxWriter;
+	jsonDataType : FB_JsonReadWriteDataType;
+	
+	timer : TON := (PT:=T#1S);	
+	state : PrgStates;
+;END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+timer(IN := NOT timer.Q);
+client.udpate();
+
+CASE state OF 
+	PrgStates.START: 
+		client.start();
+		state := PrgStates.CONNECTING;
+	
+	PrgStates.CONNECTING:
+		IF client.Connected THEN
+			state := PrgStates.SUBSCRIBING;
+		END_IF
+
+	PrgStates.SUBSCRIBING:
+		client.subscribe('001/call');
+		state := PrgStates.RUN;
+
+	PrgStates.RUN:
+		IF timer.Q THEN
+			json.ResetDocument();
+			jsonDataType.AddJsonValueFromSymbol(json, 'JSON_DriveList', SIZEOF(drives), ADR(drives));
+			json.CopyDocument(msg, SIZEOF(msg));
+		
+			client.publish(topic, ADR(msg), SIZEOF(msg));
+		
+			drives[0].id := N;
+			N := N + 1;
+		END_IF		
+END_CASE
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="PrgStates" Id="{7172dc21-0bf4-0302-36cd-a70aa4380837}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE PrgStates :
+(
+	START 		:= 0,
+	CONNECTING 	:= 1,
+	SUBSCRIBING := 2,
+	RUN 		:=3
+) DINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

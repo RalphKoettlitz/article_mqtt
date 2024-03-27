@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MQTTDecoder" Id="{e1370b12-9d0e-008b-23c1-3795f90e226e}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'no_explicit_call' := 'do not call this POU directly'} 
+FUNCTION_BLOCK MQTTDecoder IMPLEMENTS IMQTTMsgDecoder
+VAR
+	mqttData	: STRING(20000);
+	mqttTopic	: STRING(1000);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="decode" Id="{3d1c799d-d526-0c4f-2d08-640956ba883e}">
+      <Declaration><![CDATA[METHOD decode : BOOL
+VAR_INPUT
+	Topic		: REFERENCE TO STRING;
+	Data		: REFERENCE TO STRING;
+END_VAR
+VAR_INST
+		
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF Topic = '001/call' THEN
+	mqttData := Data;
+ELSE
+	mqttData := Data;	
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

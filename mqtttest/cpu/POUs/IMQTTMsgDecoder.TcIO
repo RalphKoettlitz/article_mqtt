@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <Itf Name="IMQTTMsgDecoder" Id="{74b1eb81-11fe-080f-1461-71298c8b3a2a}">
+    <Declaration><![CDATA[INTERFACE IMQTTMsgDecoder
+]]></Declaration>
+    <Method Name="decode" Id="{ba8ead04-d4c2-0f63-372d-bb025f22cbe2}">
+      <Declaration><![CDATA[METHOD decode : BOOL
+VAR_INPUT
+	Topic		: REFERENCE TO STRING;
+	Data		: REFERENCE TO STRING;
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>
