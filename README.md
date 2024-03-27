@@ -5,9 +5,9 @@ It's practical to run mosquitto with docker. The option -v maps the folder broke
 ```
 docker run -it -p 1883:1883 -v $(pwd)/broker:/mosquitto/ eclipse-mosquitto
 
-= broker +
-		  + config +
-		           | mosquitto.conf
+= broker 
+	+ config 
+		| mosquitto.conf
 				   
 				  
 ```
